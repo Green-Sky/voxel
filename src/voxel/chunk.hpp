@@ -22,7 +22,7 @@
 //#include "ChunkID.h"
 
 #include <memory>
-#include <mutex>
+#include <shared_mutex>
 #include <cassert>
 
 #include <glm/vec3.hpp>
@@ -51,19 +51,19 @@ using ChunkPosition3D = glm::ivec3;
 
 // TODO(green): pack
 struct ChunkID {
-    ChunkID() : id(0) {};
+	ChunkID() : id(0) {};
 	ChunkID(const ChunkPosition3D& cp) : p{cp.x, cp.y, cp.z} {};
-    ChunkID(int32_t x, int32_t y, int32_t z) : p{x, y, z} {};
-    ChunkID(uint64_t id) : id{id} {};
-    union {
-        struct {
-            int64_t x : 24;
-            int64_t y : 16;
-            int64_t z : 24;
-        } p;
-        uint64_t id;
-    };
-    operator uint64_t() const { return id; }
+	ChunkID(int32_t x, int32_t y, int32_t z) : p{x, y, z} {};
+	ChunkID(uint64_t id) : id{id} {};
+	union {
+		struct {
+			int64_t x : 24;
+			int64_t y : 16;
+			int64_t z : 24;
+		} p;
+		uint64_t id;
+	};
+	operator uint64_t() const { return id; }
 };
 // for hashing, see botom of file
 
@@ -115,7 +115,7 @@ class Chunk {
 
 		//void setRecyclers(vcore::FixedSizeArrayRecycler<CHUNK_SIZE, uint16_t>* shortRecycler);
 		inline void updateContainers(void) {
-		    voxels.update(dataMutex);
+			voxels.update(dataMutex);
 			//tertiary.update(dataMutex);
 		}
 
@@ -135,7 +135,7 @@ class Chunk {
 		//}
 
 		inline void setBlock(int x, int y, int z, uint16_t id) {
-#if 0
+#if 1
 			// use for debugging
 			assert(x >= 0);
 			assert(x < CHUNK_WIDTH);
@@ -176,8 +176,7 @@ class Chunk {
 
 		//f32 distance2; //< Squared distance
 
-		// TODO(Ben): reader/writer lock
-		std::mutex dataMutex;
+		std::shared_mutex dataMutex;
 
 		volatile bool isAccessible; // ??
 
@@ -203,7 +202,7 @@ class Chunk {
 		/************************************************************************/
 		/* Chunk Handle Data													*/
 		/************************************************************************/
-		std::mutex m_handleMutex;
+		//std::mutex m_handleMutex;
 		ALIGNED_(4) volatile uint32_t m_handleState;
 		ALIGNED_(4) volatile uint32_t m_handleRefCount;
 };
@@ -213,10 +212,10 @@ class Chunk {
 // Hash for ChunkID
 template <>
 struct std::hash<voxel::ChunkID> {
-    size_t operator()(const voxel::ChunkID& id) const {
-        ::std::hash<uint64_t> h;
-        return h(id.id);
-    }
+	size_t operator()(const voxel::ChunkID& id) const {
+		::std::hash<uint64_t> h;
+		return h(id.id);
+	}
 };
 
 namespace vvox = voxel;

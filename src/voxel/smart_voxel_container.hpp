@@ -13,7 +13,7 @@
 #ifndef smart_voxel_container_hpp
 #define smart_voxel_container_hpp
 
-#include <mutex>
+#include <shared_mutex>
 #include <vector>
 #include <memory> // allocator
 #include <limits>
@@ -141,7 +141,7 @@ namespace voxel {
 				}
 			}
 
-			inline void changeState(VoxelStorageState newState, std::mutex& dataLock) {
+			inline void changeState(VoxelStorageState newState, std::shared_mutex& dataLock) {
 				if (newState == _state) return;
 				if (newState == VoxelStorageState::INTERVAL_TREE) {
 					compress(dataLock);
@@ -154,7 +154,7 @@ namespace voxel {
 
 			/// Updates the container. Call once per tick
 			/// @param dataLock: The mutex that guards the data
-			inline void update(std::mutex& dataLock) {
+			inline void update(std::shared_mutex& dataLock) {
 				// If access count is higher than the threshold, this is not a quiet frame
 				if (_accessCount >= ACCESS_COUNT_UNTIL_DECOMPRESS) {
 					_quietFrames = 0;
@@ -165,15 +165,15 @@ namespace voxel {
 				if (_state == VoxelStorageState::INTERVAL_TREE) {
 					// Check if we should uncompress the data
 					if (_quietFrames == 0) {
-						uncompress(dataLock);
+						tryUncompress(dataLock);
 					}
 				} else {
 					// Check if we should compress the data
 					if (_quietFrames >= QUIET_TICKS_UNTIL_COMPRESS && totalContainerCompressions <= MAX_COMPRESSIONS_PER_FRAME) {
-						compress(dataLock);
+						tryCompress(dataLock);
 					}
 				}
-				_accessCount = 0;
+				_accessCount = 0; // TODO: handle failed try
 			}
 
 			/// Clears the container and frees memory
@@ -253,19 +253,29 @@ namespace voxel {
 			static Getter getters[2];
 			static Setter setters[2];
 
-			inline void uncompress(std::mutex& dataLock) {
-				dataLock.lock();
+			inline void uncompressLockLess(void) {
 				_dataArray = _allocator.allocate(SIZE);
 				uncompressIntoBuffer(_dataArray);
 				// Free memory
 				_dataTree.clear();
 				// Set the new state
 				_state = VoxelStorageState::FLAT_ARRAY;
+			}
+
+			inline void uncompress(std::shared_mutex& dataLock) {
+				dataLock.lock();
+				uncompressLockLess();
 				dataLock.unlock();
 			}
 
-			inline void compress(std::mutex& dataLock) {
-				dataLock.lock();
+			inline void tryUncompress(std::shared_mutex& dataLock) {
+				if (dataLock.try_lock()) {
+					uncompressLockLess();
+					dataLock.unlock();
+				}
+			}
+
+			inline void compressLockLess(void) {
 				// Sorted array for creating the interval tree
 				// Using stack array to avoid allocations, beware stack overflow
 				//typename IntervalTree<T>::LNode data[CHUNK_SIZE];
@@ -285,13 +295,26 @@ namespace voxel {
 				// Create the tree
 				_dataTree.initFromSortedArray(data, index + 1);
 
-				dataLock.unlock();
+				// async after this?
 
 				// Recycle memory
 				_allocator.deallocate(_dataArray, SIZE);
 				_dataArray = nullptr;
 
 				totalContainerCompressions++;
+			}
+
+			inline void compress(std::shared_mutex& dataLock) {
+				dataLock.lock();
+				compressLockLess();
+				dataLock.unlock();
+			}
+
+			inline void tryCompress(std::shared_mutex& dataLock) {
+				if (dataLock.try_lock()) {
+					compressLockLess();
+					dataLock.unlock();
+				}
 			}
 
 			IntervalTree<T> _dataTree; ///< Interval tree of voxel data

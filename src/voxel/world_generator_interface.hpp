@@ -10,7 +10,9 @@ class WorldGeneratorI {
 		WorldGeneratorI(VoxelDict<uint16_t>& voxel_dict) : _voxel_dict(voxel_dict) {}
 		virtual ~WorldGeneratorI(void) {};
 
-		virtual void generateChunk(vvox::Chunk& chunk) = 0;
+		// returns generated vox count
+		virtual uint64_t generateChunk(vvox::Chunk& chunk) = 0;
+		//virtual void generateChunk(vvox::Chunk& chunk) = 0;
 
 	protected:
 		VoxelDict<uint16_t>& _voxel_dict;

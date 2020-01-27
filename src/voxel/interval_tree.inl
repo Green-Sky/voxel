@@ -49,6 +49,7 @@ int16_t IntervalTree<T>::getInterval(size_t index) const {
 		// TODO(Ben): Error checking. Ideally we can remove this when we are certain this condition can never happen
 		if (interval < 0 || interval >= (int32_t)m_tree.size()) {
 			std::cout << "getInterval failed! Looking for index: " << index << " Interval is " << interval << std::endl;
+			assert(false);
 			int a;
 			std::cin >> a;
 		}

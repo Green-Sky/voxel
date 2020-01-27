@@ -20,6 +20,7 @@
 #include <vector>
 #include <string>
 #include <iostream> // TODO(green): remove
+#include <cassert>
 
 namespace voxel {
 
