@@ -56,7 +56,7 @@ struct VoxelDict {
 
 		inline void setString(T id, const std::string& str) {
 			map_str_to_id[str] = id;
-			map_hs_to_id[entt::hashed_string::to_value(str.c_str())] = id;
+			map_hs_to_id[entt::hashed_string::value(str.c_str())] = id;
 		}
 
 		inline const std::string& getString(T id) const {
