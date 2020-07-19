@@ -12,7 +12,7 @@ enum class VoxelType : uint8_t {
 	EMPTY = 0x00,
 	SOLID,
 	TRANSP_OPAQUE,	// only contains opaque or full transparent colors
-	TRANSP_FULL,	// can contain any kind of transparency
+	TRANSP_FULL,	// can contain any kind of transparency // TODO: refractive index ?
 	VoxelType_COUNT
 };
 

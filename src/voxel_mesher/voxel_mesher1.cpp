@@ -15,6 +15,39 @@ static inline uint8_t calc_ao_vertex(bool side1, bool side2, bool corner) {
 	//return 3 - (BOOL_TO_NUM(side1) + BOOL_TO_NUM(side2) + BOOL_TO_NUM(corner));
 }
 
+bool faceTest(
+		const vvox::ChunkID id,
+		voxel::ChunkContainer& cc,
+		const voxel::VoxelDict<uint16_t>& voxel_dict,
+		vvox::SmartVoxelContainer<uint16_t>& self_voxels,
+		voxel::VoxelFace face,
+		int16_t x, int16_t y, int16_t z) {
+
+#define FACING_POS(x,y,z) (x)+facing_off[face][0], (y)+facing_off[face][1], (z)+facing_off[face][2]
+	// switch on own voxel type
+	switch (voxel_dict.getType(getVoxelAt(self_voxels, id, cc, x, y, z))) {
+		case voxel::VoxelType::SOLID:
+			if (voxel_dict.getType(getVoxelAt(self_voxels, id, cc, FACING_POS(x, y, z))) == voxel::VoxelType::SOLID) {
+				return false;
+			} else {
+				return true;
+			}
+		case voxel::VoxelType::TRANSP_FULL: //[[fallthrough]]
+		case voxel::VoxelType::TRANSP_OPAQUE: // for leafs glas ...
+			if (getVoxelAt(self_voxels, id, cc, FACING_POS(x, y, z)) == getVoxelAt(self_voxels, id, cc, x, y, z)) {
+				return false;
+			} else {
+				return true;
+			}
+			break;
+		case voxel::VoxelType::EMPTY:
+			return false;
+		default:
+			return false;
+	}
+#undef FACING_POS
+}
+
 void generateMesh(
 		const vvox::ChunkID id,
 		voxel::ChunkContainer& cc,
@@ -32,14 +65,14 @@ void generateMesh(
 
 #define COMPRESS_AO(a,b,c,d) \
 	(CUT_AO(a) | \
-	 (CUT_AO(b) << 2) | \
-	 (CUT_AO(c) << 4) | \
-	 (CUT_AO(d) << 6))
+	(CUT_AO(b) << 2) | \
+	(CUT_AO(c) << 4) | \
+	(CUT_AO(d) << 6))
 
 #define COMPRESS_FACE(x,y,z,ao,tex) \
 	(COMPRESS_COORDS(x,y,z) | \
-	 (vertex_type(ao) << 15) | \
-	 (vertex_type(tex) << 32))
+	(vertex_type(ao) << 15) | \
+	(vertex_type(tex) << 32))
 
 	auto& self_voxels = cc.chunks[id].chunk->voxels;
 
@@ -49,7 +82,7 @@ void generateMesh(
 			for (int64_t z = 0; z < CHUNK_WIDTH; z++) {
 				// TODO: seperate sold from transparent
 				for (size_t face = 0; face < voxel::VoxelFace_COUNT; face++) {
-					if (faceTest(id, cc, voxel_dict, self_voxels, (voxel::VoxelFace)face, x, y, z)) {
+					if (mesh_buffer.face_test_fn(id, cc, voxel_dict, self_voxels, (voxel::VoxelFace)face, x, y, z)) {
 						const auto voxel_id = getVoxelAt(self_voxels, id, cc, x, y, z);
 						uint8_t ao_verts[4];
 						for (int ao_vert = 0; ao_vert < 4; ao_vert++) {
