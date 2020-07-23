@@ -46,32 +46,32 @@ struct VoxelDict {
 			voxel_face_textures.fill(8); // tnt lol
 		}
 
-		inline void setType(T id, const VoxelType type) {
+		void setType(T id, const VoxelType type) {
 			voxel_type[id] = type;
 		}
 
-		inline VoxelType getType(T id) const {
+		VoxelType getType(T id) const {
 			return voxel_type[id];
 		}
 
-		inline void setString(T id, const std::string& str) {
+		void setString(T id, const std::string& str) {
 			map_str_to_id[str] = id;
 			map_hs_to_id[entt::hashed_string::value(str.c_str())] = id;
 		}
 
-		inline const std::string& getString(T id) const {
+		const std::string& getString(T id) const {
 			return map_id_to_str[id];
 		}
 
-		inline T getID(const std::string& str) {
+		T getID(const std::string& str) {
 			return map_str_to_id[str];
 		}
 
-		inline T getID(const entt::hashed_string::hash_type hs) {
+		T getID(const entt::hashed_string::hash_type hs) {
 			return map_hs_to_id[hs];
 		}
 
-		inline void setTexFaces(T id, uint16_t tex_faces[VoxelFace_COUNT]) {
+		void setTexFaces(T id, uint16_t tex_faces[VoxelFace_COUNT]) {
 			if (tex_faces) {
 				auto* tex_voxel_ptr = voxel_face_textures.data() + id*6;
 				for (size_t face = 0; face < VoxelFace_COUNT; face++) {
@@ -80,22 +80,22 @@ struct VoxelDict {
 			}
 		}
 
-		inline const uint16_t* getTexFaces(T id) const {
+		const uint16_t* getTexFaces(T id) const {
 			return voxel_face_textures.data() + id*VoxelFace_COUNT;
 		}
 
-		inline void set(T id, const VoxelType type, const std::string& str) {
+		void set(T id, const VoxelType type, const std::string& str) {
 			setType(id, type);
 			setString(id, str);
 		}
 
-		inline void set(T id, const VoxelType type, const std::string& str, uint16_t tex_faces[VoxelFace_COUNT]) {
+		void set(T id, const VoxelType type, const std::string& str, uint16_t tex_faces[VoxelFace_COUNT]) {
 			setType(id, type);
 			setString(id, str);
 			setTexFaces(id, tex_faces);
 		}
 
-		inline void set(T id, const VoxelType type, const std::string& str,
+		void set(T id, const VoxelType type, const std::string& str,
 				uint16_t tex_face_bottom, uint16_t tex_face_top,
 				uint16_t tex_face_front, uint16_t tex_face_back,
 				uint16_t tex_face_left, uint16_t tex_face_right) {
@@ -105,6 +105,17 @@ struct VoxelDict {
 				tex_face_bottom, tex_face_top,
 				tex_face_front, tex_face_back,
 				tex_face_left, tex_face_right
+			};
+			setTexFaces(id, tex_faces);
+		}
+
+		void set(T id, const VoxelType type, const std::string& str, uint16_t tex_face_all) {
+			setType(id, type);
+			setString(id, str);
+			uint16_t tex_faces[] = {
+				tex_face_all, tex_face_all,
+				tex_face_all, tex_face_all,
+				tex_face_all, tex_face_all
 			};
 			setTexFaces(id, tex_faces);
 		}

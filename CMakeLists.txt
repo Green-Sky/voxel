@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
 add_library(voxel
+	./src/voxel/voxel_traversal.hpp
+	./src/voxel/voxel_traversal.cpp
+
 	./src/voxel/smart_voxel_container.hpp
 	./src/voxel/smart_voxel_container.cpp
 
@@ -12,7 +15,9 @@ add_library(voxel
 
 	./src/voxel/voxel_dict.hpp
 	./src/voxel/world_generator_interface.hpp
+
 	./src/voxel/chunk_container.hpp
+	./src/voxel/chunk_container.cpp
 )
 
 target_compile_features(voxel PUBLIC cxx_std_17)

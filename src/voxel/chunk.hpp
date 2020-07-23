@@ -126,7 +126,7 @@ class Chunk {
 		//const VoxelPosition3D& getVoxelPosition() const { return m_voxelPosition; }
 		const ChunkID& getID() const { return m_id; }
 
-		inline uint16_t getBlockData(int c) const {
+		inline uint16_t getBlockData(size_t c) const {
 			return voxels.get(c);
 		}
 

@@ -2,10 +2,13 @@
 
 #include <unordered_map>
 #include <list>
+#include <functional>
 
 #include "./chunk.hpp"
 
 #include "./world_generator_interface.hpp"
+
+#include <glm/fwd.hpp>
 
 namespace voxel {
 
@@ -22,25 +25,14 @@ struct ChunkContainer {
 
 	std::shared_ptr<WorldGeneratorI> world_generator = nullptr;
 
-	inline bool has(vvox::ChunkID id) {
+	bool has(vvox::ChunkID id) {
 		return chunks.count(id);
 	}
 
-	inline bool initChunk(vvox::ChunkID id) {
-		if (has(id)) {
-			return false;
-		}
+	bool initChunk(vvox::ChunkID id);
 
-		auto& new_chunk = chunk_storage.emplace_back();
-
-		new_chunk.m_id = id;
-		new_chunk.initAndFillEmpty();
-		new_chunk.flagDirty();
-
-		chunks[id] = {&new_chunk, false, false};
-
-		return true;
-	}
+	// broken, reimplement pls
+	void rayTraverseVoxels(const glm::vec3& start, const glm::vec3& end, std::function<bool(int32_t, int32_t, int32_t, vvox::ChunkID)> fn);
 };
 
 } // voxel
