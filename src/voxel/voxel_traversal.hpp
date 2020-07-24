@@ -13,5 +13,12 @@ void ray_traverse(
 	std::function<bool(int32_t, int32_t, int32_t)> fn
 );
 
+// does not cover all of the "ray-hit" voxels, but has other uses
+void bresenhams_traverse(
+	int32_t start_x, int32_t start_y, int32_t start_z,
+	int32_t end_x, int32_t end_y, int32_t end_z,
+	std::function<bool(int32_t, int32_t, int32_t)> fn
+);
+
 } // voxel
 

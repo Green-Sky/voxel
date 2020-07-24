@@ -62,5 +62,58 @@ void ray_traverse(
 	} while (curr_voxel != end_voxel);
 }
 
+void bresenhams_traverse(
+	int32_t start_x, int32_t start_y, int32_t start_z,
+	int32_t end_x, int32_t end_y, int32_t end_z,
+	std::function<bool(int32_t, int32_t, int32_t)> fn
+) {
+	if (!fn(start_x, start_y, start_z)) {
+		return;
+	}
+
+	glm::ivec3 start {start_x, start_y, start_z};
+	glm::ivec3 end {end_x, end_y, end_z};
+
+	glm::ivec3 d = glm::abs(end - start);
+
+	// TODO: 0?
+	glm::ivec3 sign = glm::sign(d);
+
+	enum AXIS : size_t {
+		X = 0,
+		Y = 1,
+		Z = 2
+	};
+
+	AXIS driving_axis = d.x > d.y ? AXIS::X : AXIS::Y;
+	driving_axis = d[driving_axis] > d.z ? driving_axis : AXIS::Z;
+
+	auto p1 = 2 * d[(driving_axis+1)%3] - d[driving_axis];
+	auto p2 = 2 * d[(driving_axis+2)%3] - d[driving_axis];
+
+	glm::ivec3 curr = start;
+
+
+	while (curr[driving_axis] != end[driving_axis]) {
+		curr[driving_axis] += sign[driving_axis];
+
+		if (p1 >= 0) {
+			curr[(driving_axis+1)%3] += sign[(driving_axis+1)%3];
+			p1 -= 2 * d[driving_axis];
+		}
+		if (p2 >= 0) {
+			curr[(driving_axis+2)%3] += sign[(driving_axis+2)%3];
+			p2 -= 2 * d[driving_axis];
+		}
+
+		p1 += 2 * d[(driving_axis+1)%3];
+		p2 += 2 * d[(driving_axis+2)%3];
+
+		if (!fn(curr.x, curr.y, curr.z)) {
+			break;
+		}
+	}
+}
+
 } // voxel
 
