@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <string>
 
+#include "./voxel.hpp"
+
 namespace voxel {
 
 enum class VoxelType : uint8_t {
@@ -14,16 +16,6 @@ enum class VoxelType : uint8_t {
 	TRANSP_OPAQUE,	// only contains opaque or full transparent colors
 	TRANSP_FULL,	// can contain any kind of transparency // TODO: refractive index ?
 	VoxelType_COUNT
-};
-
-enum VoxelFace : uint8_t {
-	BOTTOM = 0x00,
-	TOP,
-	FRONT,
-	BACK,
-	LEFT,
-	RIGHT,
-	VoxelFace_COUNT
 };
 
 template<typename T = uint16_t>

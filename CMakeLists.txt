@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
 add_library(voxel
+	./src/voxel/voxel.hpp
+
 	./src/voxel/voxel_traversal.hpp
 	./src/voxel/voxel_traversal.cpp
 
