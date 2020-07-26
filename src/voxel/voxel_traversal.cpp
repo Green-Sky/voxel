@@ -1,8 +1,12 @@
 #include "./voxel_traversal.hpp"
-#include "glm/fwd.hpp"
-#include "glm/geometric.hpp"
+
+#include <glm/fwd.hpp>
+#include <glm/geometric.hpp>
 
 #include <glm/common.hpp>
+
+#include <iostream>
+#include <string>
 
 namespace voxel {
 
@@ -11,6 +15,21 @@ enum AXIS : size_t {
 	Y = 1,
 	Z = 2
 };
+
+std::ostream& operator<<(std::ostream& os, const glm::ivec3& glm_type_ref) {
+	os << "{" << glm_type_ref[0] << "," << glm_type_ref[1] << "," << glm_type_ref[2] << "}";
+	return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const glm::vec3& glm_type_ref) {
+	os << "{" << glm_type_ref[0] << "," << glm_type_ref[1] << "," << glm_type_ref[2] << "}";
+	return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const glm::bvec3& glm_type_ref) {
+	os << "{" << glm_type_ref[0] << "," << glm_type_ref[1] << "," << glm_type_ref[2] << "}";
+	return os;
+}
 
 void ray_traversal(
 	float start_x, float start_y, float start_z,
@@ -43,19 +62,39 @@ void ray_traversal(
 	//glm::vec3 tDelta = step / dir;
 	glm::vec3 tDelta = glm::sign(ray) / dir;
 
-	//enum AXIS : size_t {
-		//X = 0,
-		//Y = 1,
-		//Z = 2
-	//};
+	glm::bvec3 invalid_axis = glm::isnan(tDelta);
+
+	//std::cout << "############# ray start\n"
+		//"  startvox " << start_voxel << "\n"
+		//"  endvox " << end_voxel << "\n"
+		//"  step " << step << "\n"
+		//"  tMax " << tMax << "\n"
+		//"  tDelta " << tDelta << "\n"
+		//"  invalid_axis " << invalid_axis << "\n"
+	//;
 
 	// start voxel
 	if (!fn(curr_voxel.x, curr_voxel.y, curr_voxel.z)) {
 		return;
 	}
 
+	// if start == end
+	if (glm::all(invalid_axis)) {
+		//std::cout << "############# ray end\n";
+		return;
+	}
+
+	for (size_t i = 0; i < 3; i++) {
+		if (glm::isnan(tDelta[i])) {
+			tMax[i] = 1/0.000000000000000f; // inf, makes them never min tMax
+		}
+	}
+
+	//std:: cout << "  tDelta mod " << tDelta << "\n";
+
+
 	// TODO: face
-	do {
+	while (curr_voxel != end_voxel) {
 		AXIS smallest_tMax = tMax.x < tMax.y ? X : Y;
 		smallest_tMax = tMax[smallest_tMax] < tMax.z ? smallest_tMax : Z;
 
@@ -65,7 +104,8 @@ void ray_traversal(
 		if (!fn(curr_voxel.x, curr_voxel.y, curr_voxel.z)) {
 			break;
 		}
-	} while (curr_voxel != end_voxel);
+	}
+	//std::cout << "############# ray end\n";
 }
 
 void bresenhams_traversal(

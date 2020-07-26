@@ -126,8 +126,22 @@ class Chunk {
 		//const VoxelPosition3D& getVoxelPosition() const { return m_voxelPosition; }
 		const ChunkID& getID() const { return m_id; }
 
-		inline uint16_t getBlockData(size_t c) const {
+		uint16_t getBlockData(size_t c) const {
 			return voxels.get(c);
+		}
+
+		uint16_t getBlockData(int x, int y, int z) const {
+#if 1
+			// use for debugging
+			assert(x >= 0);
+			assert(x < CHUNK_WIDTH);
+			assert(y >= 0);
+			assert(y < CHUNK_WIDTH);
+			assert(z >= 0);
+			assert(z < CHUNK_WIDTH);
+#endif
+
+			return voxels.get(POS_IN_CHUNK(x, y, z));
 		}
 
 		//inline uint16_t getTertiaryData(int c) const {

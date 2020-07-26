@@ -4,9 +4,11 @@
 
 namespace voxel {
 
+// 3D-DDA
 // assumes the center of a voxel to be 0.5
 // calls fn for each voxel, in order
 // if fn returns false, the algorithm is terminated
+// TESTED, works
 void ray_traversal(
 	float start_x, float start_y, float start_z,
 	float end_x, float end_y, float end_z,

@@ -43,21 +43,30 @@ void ChunkContainer::rayTraverseVoxels(const glm::vec3& start, const glm::vec3& 
 			glm::vec3 curr_chunk_origin{chunk_x, chunk_y, chunk_z};
 			curr_chunk_origin *= float(CHUNK_WIDTH);
 
-			glm::vec3 start_vox{
-				glm::clamp(start.x, chunk_x * float(CHUNK_WIDTH), (chunk_x + 1) * float(CHUNK_WIDTH)),
-				glm::clamp(start.y, chunk_y * float(CHUNK_WIDTH), (chunk_y + 1) * float(CHUNK_WIDTH)),
-				glm::clamp(start.z, chunk_z * float(CHUNK_WIDTH), (chunk_z + 1) * float(CHUNK_WIDTH)),
-			};
+			//glm::vec3 start_vox{
+				//glm::clamp(start.x, chunk_x * float(CHUNK_WIDTH), (chunk_x + 1) * float(CHUNK_WIDTH) - 1.f),
+				//glm::clamp(start.y, chunk_y * float(CHUNK_WIDTH), (chunk_y + 1) * float(CHUNK_WIDTH) - 1.f),
+				//glm::clamp(start.z, chunk_z * float(CHUNK_WIDTH), (chunk_z + 1) * float(CHUNK_WIDTH) - 1.f),
+			//};
 
-			glm::vec3 end_vox{
-				glm::clamp(end.x, chunk_x * float(CHUNK_WIDTH), (chunk_x + 1) * float(CHUNK_WIDTH)),
-				glm::clamp(end.y, chunk_y * float(CHUNK_WIDTH), (chunk_y + 1) * float(CHUNK_WIDTH)),
-				glm::clamp(end.z, chunk_z * float(CHUNK_WIDTH), (chunk_z + 1) * float(CHUNK_WIDTH)),
-			};
+			//glm::vec3 end_vox{
+				//glm::clamp(end.x, chunk_x * float(CHUNK_WIDTH), (chunk_x + 1) * float(CHUNK_WIDTH) - 1.f),
+				//glm::clamp(end.y, chunk_y * float(CHUNK_WIDTH), (chunk_y + 1) * float(CHUNK_WIDTH) - 1.f),
+				//glm::clamp(end.z, chunk_z * float(CHUNK_WIDTH), (chunk_z + 1) * float(CHUNK_WIDTH) - 1.f),
+			//};
+
+			glm::vec3 start_vox = start;
+			glm::vec3 end_vox = end;
 
 			// make em chunk local
 			start_vox -= curr_chunk_origin;
 			end_vox -= curr_chunk_origin;
+
+			// clamp em
+			glm::vec3 lower_bound{0,0,0};
+			glm::vec3 upper_bound{31.9f, 31.9f, 31.9f};
+			start_vox = glm::clamp(start_vox, lower_bound, upper_bound);
+			end_vox = glm::clamp(end_vox, lower_bound, upper_bound);
 
 			voxel::ray_traversal(
 				start_vox.x, start_vox.y, start_vox.z,
