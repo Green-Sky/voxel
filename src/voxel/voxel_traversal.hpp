@@ -1,8 +1,19 @@
 #pragma once
 
+#include <voxel/voxel.hpp>
 #include <functional>
 
 namespace voxel {
+
+enum AXIS : size_t {
+	X = 0,
+	Y = 1,
+	Z = 2
+};
+
+// returns the face a ray penetrates, given the axis and the ray travel direction
+// sign of 0 results in undefined behaviour
+VoxelFace face_from_axis(AXIS axis, int sign_x, int sign_y, int sign_z);
 
 // 3D-DDA
 // assumes the center of a voxel to be 0.5
@@ -12,7 +23,7 @@ namespace voxel {
 void ray_traversal(
 	float start_x, float start_y, float start_z,
 	float end_x, float end_y, float end_z,
-	std::function<bool(int32_t, int32_t, int32_t)> fn
+	std::function<bool(int32_t, int32_t, int32_t, AXIS, int, int, int)> fn
 );
 
 // does not cover all of the "ray-hit"-voxels, but has other uses

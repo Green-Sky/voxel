@@ -5,7 +5,6 @@
 #include <voxel/smart_voxel_container.hpp>
 
 #include "./voxel_traversal.hpp"
-#include "glm/ext/vector_float3.hpp"
 
 namespace voxel {
 
@@ -33,7 +32,7 @@ void ChunkContainer::rayTraverseVoxels(const glm::vec3& start, const glm::vec3& 
 	voxel::ray_traversal(
 		start_chunk.x, start_chunk.y, start_chunk.z,
 		end_chunk.x, end_chunk.y, end_chunk.z,
-		[&](int32_t chunk_x, int32_t chunk_y, int32_t chunk_z) -> bool {
+		[&](int32_t chunk_x, int32_t chunk_y, int32_t chunk_z, AXIS hit_on_axis, int sign_x, int sign_y, int sign_z) -> bool {
 			vvox::ChunkID c_id(chunk_x, chunk_y, chunk_z);
 
 			if (!this->has(c_id)) {
@@ -43,18 +42,6 @@ void ChunkContainer::rayTraverseVoxels(const glm::vec3& start, const glm::vec3& 
 			glm::vec3 curr_chunk_origin{chunk_x, chunk_y, chunk_z};
 			curr_chunk_origin *= float(CHUNK_WIDTH);
 
-			//glm::vec3 start_vox{
-				//glm::clamp(start.x, chunk_x * float(CHUNK_WIDTH), (chunk_x + 1) * float(CHUNK_WIDTH) - 1.f),
-				//glm::clamp(start.y, chunk_y * float(CHUNK_WIDTH), (chunk_y + 1) * float(CHUNK_WIDTH) - 1.f),
-				//glm::clamp(start.z, chunk_z * float(CHUNK_WIDTH), (chunk_z + 1) * float(CHUNK_WIDTH) - 1.f),
-			//};
-
-			//glm::vec3 end_vox{
-				//glm::clamp(end.x, chunk_x * float(CHUNK_WIDTH), (chunk_x + 1) * float(CHUNK_WIDTH) - 1.f),
-				//glm::clamp(end.y, chunk_y * float(CHUNK_WIDTH), (chunk_y + 1) * float(CHUNK_WIDTH) - 1.f),
-				//glm::clamp(end.z, chunk_z * float(CHUNK_WIDTH), (chunk_z + 1) * float(CHUNK_WIDTH) - 1.f),
-			//};
-
 			glm::vec3 start_vox = start;
 			glm::vec3 end_vox = end;
 
@@ -63,7 +50,8 @@ void ChunkContainer::rayTraverseVoxels(const glm::vec3& start, const glm::vec3& 
 			end_vox -= curr_chunk_origin;
 
 			// clamp em
-			glm::vec3 lower_bound{0,0,0};
+			// TODO: make propper
+			glm::vec3 lower_bound{0.1f, 0.1f, 0.1f};
 			glm::vec3 upper_bound{31.9f, 31.9f, 31.9f};
 			start_vox = glm::clamp(start_vox, lower_bound, upper_bound);
 			end_vox = glm::clamp(end_vox, lower_bound, upper_bound);
@@ -71,7 +59,11 @@ void ChunkContainer::rayTraverseVoxels(const glm::vec3& start, const glm::vec3& 
 			voxel::ray_traversal(
 				start_vox.x, start_vox.y, start_vox.z,
 				end_vox.x, end_vox.y, end_vox.z,
-				[&](int32_t voxel_x, int32_t voxel_y, int32_t voxel_z) -> bool {
+				[&](int32_t voxel_x, int32_t voxel_y, int32_t voxel_z, AXIS hit_on_axis, int sign_x, int sign_y, int sign_z) -> bool {
+
+					assert(voxel_x >= 0);
+					assert(voxel_y >= 0);
+					assert(voxel_z >= 0);
 
 					return fn(
 						voxel_x,
