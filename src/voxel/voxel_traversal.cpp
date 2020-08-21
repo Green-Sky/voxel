@@ -40,43 +40,34 @@ VoxelFace face_from_axis(AXIS axis, int sign_x, int sign_y, int sign_z) {
 }
 
 void ray_traversal(
-	float start_x, float start_y, float start_z,
-	float end_x, float end_y, float end_z,
-	std::function<bool(int32_t, int32_t, int32_t, AXIS, int, int, int)> fn
+	glm::vec3 start,
+	glm::vec3 end,
+	std::function<bool(const glm::ivec3&, AXIS, const glm::ivec3&, const glm::vec3&)> fn
 ) {
-	glm::vec3 ray{
-		end_x-start_x,
-		end_y-start_y,
-		end_z-start_z,
-	};
+	glm::vec3 ray = end-start;
 
-	glm::vec3 dir = glm::normalize(ray);
+	//glm::vec3 dir = glm::normalize(ray);
 
-	glm::ivec3 start_voxel {glm::floor(start_x), glm::floor(start_y), glm::floor(start_z)};
-	glm::ivec3 end_voxel {glm::floor(end_x), glm::floor(end_y), glm::floor(end_z)};
+	glm::ivec3 start_voxel = glm::floor(start);
+	glm::ivec3 end_voxel = glm::floor(end);
+	glm::ivec3 curr_voxel = start_voxel;
 
 	glm::ivec3 step = glm::sign(ray);
 
-	glm::ivec3 curr_voxel = start_voxel;
 
-	//glm::vec3 tMax{
-		//(start_voxel.x+1) - start_x,
-		//(start_voxel.y+1) - start_y,
-		//(start_voxel.z+1) - start_z,
-	//};
-
-	//glm::vec3 tMax = (start_voxel + 1 + (step * -1));
-	//glm::vec3 tMax = (start_voxel + step);
 	glm::vec3 tMax = (start_voxel + (1+step) / 2); // 1 if + , 0 if -
-	tMax -= glm::vec3{start_x, start_y, start_z};
+	tMax -= start;
 
 	// should not matter
 	//tMax /= dir;
+	tMax /= ray;
 
+	// cancels?
 	tMax = glm::abs(tMax);
 
 	//glm::vec3 tDelta = step / dir; // step container type miss match
-	glm::vec3 tDelta = glm::sign(ray) / dir;
+	//glm::vec3 tDelta = glm::sign(ray) / dir;
+	glm::vec3 tDelta = glm::sign(ray) / ray;
 
 	glm::bvec3 invalid_axis = glm::isnan(tDelta);
 
@@ -92,7 +83,10 @@ void ray_traversal(
 #endif // VOXEL_DEBUG_PRINT
 
 	// start voxel
-	if (!fn(curr_voxel.x, curr_voxel.y, curr_voxel.z, AXIS::X, step.x, step.y, step.z)) { // TODO: figure out which axis
+	if (!fn(curr_voxel, AXIS::X, step, tMax)) { // TODO: figure out which axis
+#if VOXEL_DEBUG_PRINT == 1
+		std::cout << "############# ray end\n";
+#endif // VOXEL_DEBUG_PRINT
 		return;
 	}
 
@@ -106,16 +100,14 @@ void ray_traversal(
 
 	for (size_t i = 0; i < 3; i++) {
 		if (glm::isnan(tDelta[i]) || start_voxel[i] == end_voxel[i]) {
-			tMax[i] = 1/0.000000000000000f; // inf, makes them never min tMax
+			tMax[i] = 1/0.f; // inf, makes them never min tMax
 		}
 	}
 
 #if VOXEL_DEBUG_PRINT == 1
-	std:: cout << "  tDelta mod " << tDelta << "\n";
+	std:: cout << "  tMax mod " << tMax << "\n";
 #endif // VOXEL_DEBUG_PRINT
 
-
-	// TODO: face
 	while (curr_voxel != end_voxel) {
 		AXIS smallest_tMax = tMax.x < tMax.y ? X : Y;
 		smallest_tMax = tMax[smallest_tMax] < tMax.z ? smallest_tMax : Z;
@@ -123,7 +115,7 @@ void ray_traversal(
 		curr_voxel[smallest_tMax] += step[smallest_tMax];
 		tMax[smallest_tMax] += tDelta[smallest_tMax];
 
-		if (!fn(curr_voxel.x, curr_voxel.y, curr_voxel.z, smallest_tMax, step.x, step.y, step.z)) {
+		if (!fn(curr_voxel, smallest_tMax, step, tMax)) {
 			break;
 		}
 	}

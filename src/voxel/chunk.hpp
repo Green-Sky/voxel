@@ -13,6 +13,8 @@
 #ifndef vorb_chunk_hpp
 #define vorb_chunk_hpp
 
+#include <entt/config/config.h>
+
 #include "./smart_voxel_container.hpp"
 
 //#include "VoxelCoordinateSpaces.h"
@@ -49,12 +51,17 @@ struct ChunkContainer;
 using ChunkPosition2D = glm::ivec2;
 using ChunkPosition3D = glm::ivec3;
 
+// globla chunk pos + local voxel pos
+using VoxelPosition3D = std::pair<ChunkPosition3D, size_t>;
+
 // TODO(green): pack
 struct ChunkID {
 	ChunkID() : id(0) {};
 	ChunkID(const ChunkPosition3D& cp) : p{cp.x, cp.y, cp.z} {};
 	ChunkID(int32_t x, int32_t y, int32_t z) : p{x, y, z} {};
 	ChunkID(uint64_t id) : id{id} {};
+
+	// TODO: fix with getter and setters
 	union {
 		struct {
 			int64_t x : 24;
@@ -195,6 +202,8 @@ class Chunk {
 		volatile bool isAccessible; // ??
 
 		vvox::SmartVoxelContainer<uint16_t> voxels;
+		vvox::SmartVoxelContainer<uint8_t> rotations;
+		vvox::SmartVoxelContainer<ENTT_ID_TYPE> entities;
 		//vvox::SmartVoxelContainer<uint16_t> tertiary;
 
 		//// Block indexes where flora must be generated.

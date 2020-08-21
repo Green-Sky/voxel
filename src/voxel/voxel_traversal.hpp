@@ -3,6 +3,9 @@
 #include <voxel/voxel.hpp>
 #include <functional>
 
+#include <glm/fwd.hpp>
+#include <glm/vec3.hpp>
+
 namespace voxel {
 
 enum AXIS : size_t {
@@ -21,10 +24,39 @@ VoxelFace face_from_axis(AXIS axis, int sign_x, int sign_y, int sign_z);
 // if fn returns false, the algorithm is terminated
 // TESTED, works
 void ray_traversal(
+	glm::vec3 start,
+	glm::vec3 end,
+	std::function<bool(const glm::ivec3&, AXIS, const glm::ivec3&, const glm::vec3&)> fn
+);
+
+inline void ray_traversal(
+	glm::vec3 start,
+	glm::vec3 end,
+	std::function<bool(const glm::ivec3&, AXIS, const glm::ivec3&)> fn
+) {
+	ray_traversal(start, end, [&fn](const glm::ivec3& voxel, AXIS axis, const glm::ivec3& sign, const glm::vec3&) -> bool {
+			return fn(voxel, axis, sign);
+		}
+	);
+}
+
+inline void ray_traversal(
 	float start_x, float start_y, float start_z,
 	float end_x, float end_y, float end_z,
 	std::function<bool(int32_t, int32_t, int32_t, AXIS, int, int, int)> fn
-);
+) {
+	ray_traversal(
+		glm::vec3{start_x, start_y, start_z},
+		glm::vec3{end_x, end_y, end_z},
+		[&](const glm::ivec3& voxel, AXIS axis, const glm::ivec3& sign) -> bool {
+			return fn(
+				voxel.x, voxel.y, voxel.z,
+				axis,
+				sign.x, sign.y, sign.z
+			);
+		}
+	);
+}
 
 // does not cover all of the "ray-hit"-voxels, but has other uses
 void bresenhams_traversal(
